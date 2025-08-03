@@ -87,10 +87,11 @@ userRouter.get('/cart', auth, async (req, res) => {
 })
 
 userRouter.post('/cart', auth, async (req, res) => {
-    const { itemCategory, itemName, itemPrice, itemImage } = req.body
+    const { itemCategory, itemId, itemName, itemPrice, itemImage } = req.body
     try {
         const newCartItem = await cartItemModel.create({
             userId: req.user.id,
+            itemId,
             itemName,
             itemCategory,
             itemPrice,
@@ -100,4 +101,10 @@ userRouter.post('/cart', auth, async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
+})
+
+userRouter.delete('/cart', auth, (req, res) => {
+    console.log(req.body);
+
+    res.json({ message: 'del req' })
 })
