@@ -1,5 +1,6 @@
 import express from "express"
 import userModel from "../models/user.js"
+import cartItemModel from "../models/cartItem.js"
 import { body, validationResult } from "express-validator"
 import bcrypt from "bcrypt"
 import JWT from "jsonwebtoken"
@@ -74,6 +75,29 @@ userRouter.post('/login',
         }
     })
 
-userRouter.post('/cart', auth, (req, res) => {
-    res.json({ message: 'post req' })
+userRouter.get('/cart', auth, async (req, res) => {
+    try {
+        const cartItems = await cartItemModel.find({ userId: req.user.id })
+        console.log(cartItems)
+        if (!cartItems) return res.status(200).json({ message: "cart is empty" })
+        res.status(200).json(cartItems)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+userRouter.post('/cart', auth, async (req, res) => {
+    const { itemCategory, itemName, itemPrice, itemImage } = req.body
+    try {
+        const newCartItem = await cartItemModel.create({
+            userId: req.user.id,
+            itemName,
+            itemCategory,
+            itemPrice,
+            itemImageUrl: itemImage
+        })
+        res.status(201).json({ item: newCartItem })
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
 })
