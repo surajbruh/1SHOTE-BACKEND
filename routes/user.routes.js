@@ -78,7 +78,7 @@ userRouter.post('/login',
 userRouter.get('/cart', auth, async (req, res) => {
     try {
         const cartItems = await cartItemModel.find({ userId: req.user.id })
-        console.log(cartItems)
+        // console.log(cartItems)
         if (!cartItems) return res.status(200).json({ message: "cart is empty" })
         res.status(200).json(cartItems)
     } catch (error) {
@@ -89,6 +89,10 @@ userRouter.get('/cart', auth, async (req, res) => {
 userRouter.post('/cart', auth, async (req, res) => {
     const { itemCategory, itemId, itemName, itemPrice, itemImage } = req.body
     try {
+        //checks if the item is already added to cart by the user
+        const AlreadyAddedItem = await cartItemModel.findOne({ userId: req.user.id, itemId })
+        if (AlreadyAddedItem) return res.status(200).json({ message: 'Item already added to cart' })
+
         const newCartItem = await cartItemModel.create({
             userId: req.user.id,
             itemId,
@@ -103,8 +107,17 @@ userRouter.post('/cart', auth, async (req, res) => {
     }
 })
 
-userRouter.delete('/cart', auth, (req, res) => {
-    console.log(req.body);
+userRouter.delete('/cart/:itemId', auth, async (req, res) => {
+    const { itemId } = req.params
 
-    res.json({ message: 'del req' })
+    try {
+        const deletedItem = await cartItemModel.findOneAndDelete({ itemId, userId: req.user.id })
+        if (!deletedItem) return res.status(409).json({ message: "Item not found" })
+        res.status(200).json({
+            message: 'Item removed',
+            removedItem: deletedItem
+        })
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
 })
