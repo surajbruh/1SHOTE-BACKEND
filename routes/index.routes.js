@@ -1,9 +1,10 @@
 import express from "express"
 import productModel from "../models/product.js"
+import auth from "../middleware/auth.js"
 
 export const indexRouter = express.Router()
 
-indexRouter.get('/', async (req, res) => {
+indexRouter.get('/', auth, async (req, res) => {
     try {
         const items = await productModel.find()
         if (!items) return res.status(200).json({ message: 'empty' })

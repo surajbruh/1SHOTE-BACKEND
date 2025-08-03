@@ -1,7 +1,8 @@
 import dotenv from "dotenv"
 import express from "express"
-import connectDB from "./config/db.config.js"
 import cors from "cors"
+import cookieParser from "cookie-parser"
+import connectDB from "./config/db.config.js"
 import { indexRouter } from "./routes/index.routes.js"
 import { userRouter } from "./routes/user.routes.js"
 
@@ -16,6 +17,8 @@ app.use(cors({
     origin: process.env.FRONT_URL,
     credentials: true
 }))
+
+app.use(cookieParser())
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))

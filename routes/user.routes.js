@@ -2,6 +2,8 @@ import express from "express"
 import userModel from "../models/user.js"
 import { body, validationResult } from "express-validator"
 import bcrypt from "bcrypt"
+import JWT from "jsonwebtoken"
+import auth from "../middleware/auth.js"
 
 export const userRouter = express.Router()
 
@@ -55,12 +57,23 @@ userRouter.post('/login',
             const match = bcrypt.compare(password, user.password)
             if (!match) return res.status(401).json({ message: "username or password is incorrect" })
 
+            const token = JWT.sign({
+                id: user._id,
+                username: user.username
+            }, process.env.JWT_SECRET, { expiresIn: "30m" })
+
+            res.cookie('token', token)
+
             res.status(200).json({
                 message: `welcome back ${user.username}`,
-                user: { id: user._id, username: user.username }
+                user: { id: user._id, username: user.username, token: token }
             })
         } catch (error) {
             res.status(400).json({ error: error.message })
 
         }
     })
+
+userRouter.post('/cart', auth, (req, res) => {
+    res.json({ message: 'post req' })
+})
