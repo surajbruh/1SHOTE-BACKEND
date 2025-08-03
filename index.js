@@ -3,6 +3,7 @@ import express from "express"
 import connectDB from "./config/db.config.js"
 import cors from "cors"
 import { indexRouter } from "./routes/index.routes.js"
+import { userRouter } from "./routes/user.routes.js"
 
 dotenv.config({ path: "./.env" })
 
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/', indexRouter)
+app.use('/user', userRouter)
 
 app.listen(port, () => {
     console.log('Express is running')

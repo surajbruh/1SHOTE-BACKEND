@@ -1,0 +1,66 @@
+import express from "express"
+import userModel from "../models/user.js"
+import { body, validationResult } from "express-validator"
+import bcrypt from "bcrypt"
+
+export const userRouter = express.Router()
+
+userRouter.post('/signup',
+    body('username').notEmpty().trim().isLength({ min: 8 }),
+    body('email').notEmpty().trim().isLength({ min: 8 }).isEmail(),
+    body('password').notEmpty().trim().isLength({ min: 8 }),
+    async (req, res) => {
+        const { username, email, password } = req.body
+        const result = validationResult(req)
+        if (!result.isEmpty()) return res.status(400).json({ errors: result.array() })
+        try {
+            //checks if user already exists or not
+            const existingUser = await userModel.findOne({ $or: [{ username }, { email }] })
+            if (existingUser) return res.status(409).json({ message: 'user already exists' })
+
+            const hashedPassword = await bcrypt.hash(password, 10)
+            const newUser = await userModel.create({
+                username,
+                email,
+                password: hashedPassword
+            })
+
+            res.status(201).json({
+                message: 'user registered successfully',
+                user: {
+                    id: newUser._id,
+                    username: newUser.username
+                }
+            })
+        } catch (error) {
+            res.status(400).json({ error: error.message })
+
+        }
+    })
+
+userRouter.post('/login',
+    body('username').notEmpty().trim().isLength({ min: 8 }),
+    body('password').notEmpty().trim().isLength({ min: 8 }),
+    async (req, res) => {
+        const { username, password } = req.body
+        const result = validationResult(req)
+        if (!result.isEmpty()) return res.status(400).json({ errors: result.array() })
+
+        try {
+            //verifies user
+            const user = await userModel.findOne({ username })
+            if (!user) return res.status(401).json({ message: "username or password is incorrect" })
+
+            //verifies password 
+            const match = bcrypt.compare(password, user.password)
+            if (!match) return res.status(401).json({ message: "username or password is incorrect" })
+
+            res.status(200).json({
+                message: `welcome back ${user.username}`,
+                user: { id: user._id, username: user.username }
+            })
+        } catch (error) {
+            res.status(400).json({ error: error.message })
+
+        }
+    })

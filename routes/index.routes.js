@@ -19,3 +19,8 @@ indexRouter.post('/item', async (req, res) => {
     res.json({ message: 'post req' })
 
 })
+
+indexRouter.post('/cart', (req, res) => {
+    console.log(req.body)
+    res.json(req.body)
+})
