@@ -10,6 +10,20 @@ import wishlistItemModel from "../models/wishlistItem.js"
 export const userRouter = express.Router()
 
 //user
+userRouter.get('/', auth, async (req, res) => {
+    try {
+        const user = await userModel.findOne({ _id: req.user.id }, "email username")
+        if (!user) return res.status(401).json({ message: 'unauthorized' })
+
+        const { username, email } = user
+        res.status(200).json({
+            username, email
+        })
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
 userRouter.post('/signup',
     body('username').notEmpty().trim().isLength({ min: 8 }),
     body('email').notEmpty().trim().isLength({ min: 8 }).isEmail(),
