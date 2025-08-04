@@ -5,9 +5,11 @@ import { body, validationResult } from "express-validator"
 import bcrypt from "bcrypt"
 import JWT from "jsonwebtoken"
 import auth from "../middleware/auth.js"
+import wishlistItemModel from "../models/wishlistItem.js"
 
 export const userRouter = express.Router()
 
+//user
 userRouter.post('/signup',
     body('username').notEmpty().trim().isLength({ min: 8 }),
     body('email').notEmpty().trim().isLength({ min: 8 }).isEmail(),
@@ -75,6 +77,7 @@ userRouter.post('/login',
         }
     })
 
+//cart
 userRouter.get('/cart', auth, async (req, res) => {
     try {
         const cartItems = await cartItemModel.find({ userId: req.user.id })
@@ -101,7 +104,10 @@ userRouter.post('/cart', auth, async (req, res) => {
             itemPrice,
             itemImageUrl: itemImage
         })
-        res.status(201).json({ item: newCartItem })
+        res.status(201).json({
+            message: "item added to cart",
+            item: newCartItem
+        })
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
@@ -114,7 +120,58 @@ userRouter.delete('/cart/:itemId', auth, async (req, res) => {
         const deletedItem = await cartItemModel.findOneAndDelete({ itemId, userId: req.user.id })
         if (!deletedItem) return res.status(409).json({ message: "Item not found" })
         res.status(200).json({
-            message: 'Item removed',
+            message: 'Item removed from cart',
+            removedItem: deletedItem
+        })
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+//wishlist
+userRouter.get('/wishlist', auth, async (req, res) => {
+    try {
+        const wishlistItem = await wishlistItemModel.find({ userId: req.user.id })
+
+        if (!wishlistItem) return res.status(200).json({ message: "wishlist is empty" })
+        res.status(200).json(wishlistItem)
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+userRouter.post('/wishlist', auth, async (req, res) => {
+    const { itemCategory, itemId, itemName, itemPrice, itemImage } = req.body
+    try {
+        //checks if the item is already added to wishlist by the user
+        const AlreadyAddedItem = await wishlistItemModel.findOne({ userId: req.user.id, itemId })
+        if (AlreadyAddedItem) return res.status(200).json({ message: 'Item already added to wishlist' })
+
+        const newWishlistItem = await wishlistItemModel.create({
+            userId: req.user.id,
+            itemId,
+            itemName,
+            itemCategory,
+            itemPrice,
+            itemImageUrl: itemImage
+        })
+        res.status(201).json({
+            message: "Item added to wishlist",
+            item: newWishlistItem
+        })
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+})
+
+userRouter.delete('/wishlist/:itemId', auth, async (req, res) => {
+    const { itemId } = req.params
+
+    try {
+        const deletedItem = await wishlistItemModel.findOneAndDelete({ itemId, userId: req.user.id })
+        if (!deletedItem) return res.status(409).json({ message: "Item not found" })
+        res.status(200).json({
+            message: 'Item removed from wishlist',
             removedItem: deletedItem
         })
     } catch (error) {
