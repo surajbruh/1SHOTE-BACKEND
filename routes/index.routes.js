@@ -2,16 +2,18 @@ import express from "express"
 import productModel from "../models/product.js"
 import auth from "../middleware/auth.js"
 import cartItemModel from "../models/cartItem.js"
+import wishlistItemModel from "../models/wishlistItem.js"
 
 export const indexRouter = express.Router()
 
 indexRouter.get('/', auth, async (req, res) => {
     const cartItem = await cartItemModel.find({ userId: req.user.id })
-    console.log(cartItem)
+    const wishlistedItems = await wishlistItemModel.find({ userId: req.user.id })
+    // console.log(wishlistedItems)
     try {
         const items = await productModel.find()
         if (!items) return res.status(200).json({ message: 'empty' })
-        res.status(200).json({ items, cartItem })
+        res.status(200).json({ items, cartItem, wishlistedItems })
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
