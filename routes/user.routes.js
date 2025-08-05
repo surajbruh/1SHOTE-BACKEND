@@ -46,6 +46,7 @@ userRouter.post('/signup',
 
             res.status(201).json({
                 message: 'user registered successfully',
+                status: true,
                 user: {
                     id: newUser._id,
                     username: newUser.username
@@ -71,7 +72,7 @@ userRouter.post('/login',
             if (!user) return res.status(401).json({ message: "username or password is incorrect" })
 
             //verifies password 
-            const match = bcrypt.compare(password, user.password)
+            const match = await bcrypt.compare(password, user.password)
             if (!match) return res.status(401).json({ message: "username or password is incorrect" })
 
             const token = JWT.sign({
@@ -79,10 +80,17 @@ userRouter.post('/login',
                 username: user.username
             }, process.env.JWT_SECRET, { expiresIn: "30m" })
 
-            res.cookie('token', token)
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 30 * 60 * 1000 //30 minutes
+
+            })
 
             res.status(200).json({
                 message: `welcome back ${user.username}`,
+                status: true,
                 user: { id: user._id, username: user.username, token: token }
             })
         } catch (error) {
