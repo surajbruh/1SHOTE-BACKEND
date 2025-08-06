@@ -15,6 +15,11 @@ const productSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    imageUrl: {
+        type: String,
+        require: true,
+        trim: true,
+    }
 })
 
 const productModel = mongoose.model('Product', productSchema)
