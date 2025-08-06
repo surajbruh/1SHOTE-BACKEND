@@ -1,11 +1,12 @@
 import express from "express"
 import userModel from "../models/user.js"
 import cartItemModel from "../models/cartItem.js"
-import { body, validationResult } from "express-validator"
+import { validationResult } from "express-validator"
 import bcrypt from "bcrypt"
 import JWT from "jsonwebtoken"
 import auth from "../middleware/auth.js"
 import wishlistItemModel from "../models/wishlistItem.js"
+import { signupValidator, loginValidator } from "../validators/userValidators.js"
 
 export const userRouter = express.Router()
 
@@ -25,16 +26,16 @@ userRouter.get('/', auth, async (req, res) => {
 })
 
 userRouter.post('/signup',
-    body('username').notEmpty().trim().isLength({ min: 8 }),
-    body('email').notEmpty().trim().isLength({ min: 8 }).isEmail(),
-    body('password').notEmpty().trim().isLength({ min: 8 }),
+    signupValidator,
     async (req, res) => {
         const { username, email, password } = req.body
+
         const result = validationResult(req)
-        if (!result.isEmpty()) return res.status(400).json({ errors: result.array() })
+        if (!result.isEmpty()) return res.status(400).json({ message: result.array()[0].msg, error: result.array()[0].path })
+
         try {
             //checks if user already exists or not
-            const existingUser = await userModel.findOne({ $or: [{ username }, { email }] })
+            const existingUser = await userModel.findOne({ $and: [{ username }, { email }] })
             if (existingUser) return res.status(409).json({ message: 'user already exists' })
 
             const hashedPassword = await bcrypt.hash(password, 10)
@@ -53,18 +54,18 @@ userRouter.post('/signup',
                 }
             })
         } catch (error) {
-            res.status(400).json({ error: error.message })
+            res.status(400).json({ message: error.message })
 
         }
     })
 
 userRouter.post('/login',
-    body('username').notEmpty().trim().isLength({ min: 8 }),
-    body('password').notEmpty().trim().isLength({ min: 8 }),
+    loginValidator,
     async (req, res) => {
         const { username, password } = req.body
+
         const result = validationResult(req)
-        if (!result.isEmpty()) return res.status(400).json({ errors: result.array() })
+        if (!result.isEmpty()) return res.status(400).json({ message: result.array()[0].msg, error: result.array()[0].path })
 
         try {
             //verifies user
@@ -98,6 +99,13 @@ userRouter.post('/login',
 
         }
     })
+
+userRouter.get('/logout', auth, (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+    });
+    res.json({ message: 'user logged out' });
+})
 
 //cart
 userRouter.get('/cart', auth, async (req, res) => {

@@ -4,16 +4,15 @@ const userSchema = mongoose.Schema({
     username: {
         type: String,
         required: true,
-        unique: true,
+        unique: [true, 'username already taken'],
         lowercase: true,
         trim: true,
         minLength: 8,
-        timestamps: true
     },
     email: {
         type: String,
         required: true,
-        unique: true,
+        unique: [true, 'email is already registered'],
         lowercase: true,
         trim: true,
         minLength: 8
@@ -23,7 +22,9 @@ const userSchema = mongoose.Schema({
         required: true,
         trim: true,
         minLength: 8
-    }
+    },
+}, {
+    timestamps: true
 })
 
 

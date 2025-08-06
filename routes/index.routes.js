@@ -27,11 +27,9 @@ indexRouter.post('/item', async (req, res) => {
 })
 
 indexRouter.get('/verify', auth, (req, res) => {
-    const { id } = req.user
-    console.log(id)
-    if (!id) return res.status(401).json({
-        status: false,
-        message: 'Unauthorized'
+    res.status(200).json({
+        message: 'Authorized user',
+        status: true,
+        user: req.user
     })
-    res.status(200).json({ message: 'Authorized user' })
 })
