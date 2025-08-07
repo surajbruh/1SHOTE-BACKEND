@@ -2,7 +2,7 @@ import JWT from "jsonwebtoken"
 
 export default function auth(req, res, next) {
     const token = req.cookies.token
-    if (!token) return res.status(401).json({ message: "unauthorized" })
+    if (!token) return res.status(401).json({ message: "Invalid session, please login or sign up" })
 
     try {
         const verifiedToken = JWT.verify(token, process.env.JWT_SECRET)

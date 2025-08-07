@@ -13,8 +13,13 @@ const port = process.env.PORT
 
 connectDB()
 
+const allowedOrigins = [
+    process.env.FRONT_URL,
+    'http://localhost:5174/'
+]
+
 app.use(cors({
-    origin: process.env.FRONT_URL,
+    origin: allowedOrigins,
     credentials: true
 }))
 

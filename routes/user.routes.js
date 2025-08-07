@@ -103,8 +103,13 @@ userRouter.post('/login',
 userRouter.get('/logout', auth, (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
+        secure: true,
+        sameSite: 'None',
     });
-    res.json({ message: 'user logged out' });
+    res.json({
+        status: true,
+        message: 'user logged out'
+    });
 })
 
 //cart
